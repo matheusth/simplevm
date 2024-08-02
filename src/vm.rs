@@ -1,3 +1,6 @@
+use core::panic;
+use std::collections::HashMap;
+
 use crate::memory::{Addressable, LinearMemory};
 
 #[repr(u8)]
@@ -11,7 +14,7 @@ pub enum Register {
     BP,
     Flags,
 }
-
+pub type SignalFunction = fn(&mut Machine) -> Result<(), String>;
 impl From<u8> for Register {
     fn from(value: u8) -> Self {
         match value {
@@ -35,22 +38,27 @@ pub enum Op {
     PopRegister(Register),
     AddStack,
     AddRegister(Register, Register),
+    Signal(u8),
 }
 
+fn parse_instruction_arg(ins: u16) -> u8 {
+    (ins >> 8) as u8
+}
 impl Op {
     fn parse_instruction(value: u16) -> Result<Self, String> {
         let op = (value & 0xff) as u8;
         match op {
             0 => Ok(Op::Nop),
             1 => {
-                let arg = (value & 0xff00) >> 8;
-                Ok(Op::Push(arg))
+                let arg = parse_instruction_arg(value);
+                Ok(Op::Push(arg as u16))
             }
             2 => {
-                let arg = ((value & 0xff00) >> 8) as u8;
+                let arg = parse_instruction_arg(value);
                 Ok(Op::PopRegister(Register::from(arg)))
             }
             3 => Ok(Op::AddStack),
+            4 => Ok(Op::Signal(parse_instruction_arg(value))),
             _ => Err(format!("invalid instruction {:X}", value)),
         }
     }
@@ -58,6 +66,8 @@ impl Op {
 
 pub struct Machine {
     registers: [u16; 8],
+    signal_handlers: HashMap<u8, SignalFunction>,
+    pub halt: bool,
     pub memory: Box<dyn Addressable>,
 }
 
@@ -66,8 +76,14 @@ impl Machine {
         Self {
             registers: [0; 8],
             memory: Box::new(LinearMemory::new(8 * 1024)),
+            signal_handlers: HashMap::new(),
+            halt: false,
         }
     }
+    pub fn define_handler(&mut self, index: u8, f: SignalFunction) {
+        self.signal_handlers.insert(index, f);
+    }
+
     pub fn get_register(&self, register: Register) -> u16 {
         self.registers[register as usize]
     }
@@ -89,7 +105,7 @@ impl Machine {
     }
     pub fn step(&mut self) -> Result<(), String> {
         let pc = self.registers[Register::PC as usize];
-        let instruction = self.memory.read_word(pc).unwrap();
+        let instruction = self.memory.read_word(pc).ok_or(format!("failed to read memory on address {:X}.", pc))?;
         self.registers[Register::PC as usize] = pc + 2;
         // instruction format = [0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0]
         //                          operator | arg(s)
@@ -110,6 +126,9 @@ impl Machine {
             Ok(Op::AddRegister(r1, r2)) => {
                 self.registers[r1 as usize] += self.registers[r2 as usize];
                 Ok(())
+            }
+            Ok(Op::Signal(signal)) => {
+                self.signal_handlers.get(&signal).unwrap()(self)
             }
             Err(err) => Err(format!("{} on {}", err, pc)),
         }

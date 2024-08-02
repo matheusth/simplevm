@@ -1,8 +1,13 @@
-use std::{fs::File, io::Read};
+use simplevm::{Machine, Register};
 use std::env;
 use std::io::BufReader;
 use std::path::Path;
-use simplevm::{Machine, Register};
+use std::{fs::File, io::Read};
+
+fn signal_halt(vm: &mut Machine) -> Result<(), String> {
+    vm.halt = true;
+    Ok(())
+}
 
 fn main() -> Result<(), String> {
     let mut vm = Machine::new();
@@ -15,15 +20,12 @@ fn main() -> Result<(), String> {
     let mut buff = BufReader::new(file);
     let mut program: Vec<u8> = Vec::new();
 
+    vm.define_handler(0xf0, signal_halt);
     let _ = buff.read_to_end(&mut program);
     vm.memory.load_into(&program, 0);
-    vm.step()?;
-    vm.step()?;
-    vm.step()?;
-    vm.step()?;
-    vm.step()?;
-    vm.step()?;
-
+    while !vm.halt {
+        vm.step()?;
+    }
     println!("A = {}", vm.get_register(Register::A));
     Ok(())
 }
