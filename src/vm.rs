@@ -23,7 +23,7 @@ impl From<u8> for Register {
             5 => Self::PC,
             6 => Self::BP,
             7 => Self::Flags,
-            _ => Self::Flags,
+            _ => panic!("invalid register"),
         }
     }
 }

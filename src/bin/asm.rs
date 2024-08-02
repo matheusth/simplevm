@@ -13,7 +13,6 @@ fn main() {
     }
     let file = File::open(Path::new(&args[1])).unwrap();
     let buff = BufReader::new(file);
-
     let mut output: Vec<u8> = Vec::new();
     for line in buff.lines() {
         for t in line.unwrap().split(' ').filter(|x| !x.is_empty()) {
