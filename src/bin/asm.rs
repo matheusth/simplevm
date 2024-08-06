@@ -1,3 +1,4 @@
+use simplevm::Op;
 use std::{
     env,
     fs::File,
@@ -14,13 +15,15 @@ fn main() {
     let file = File::open(Path::new(&args[1])).unwrap();
     let buff = BufReader::new(file);
     let mut output: Vec<u8> = Vec::new();
-    for line in buff.lines() {
-        for t in line.unwrap().split(' ').filter(|x| !x.is_empty()) {
-            let b = u8::from_str_radix(t, 16)
-                .map_err(|x| format!("parse int: {}", x))
-                .unwrap();
-            output.push(b);
-        }
+    let encoded_instructions: Vec<u16> = buff
+        .lines()
+        .map(|e| e.unwrap())
+        .map(|l| Op::try_from(l).unwrap())
+        .map(|op| std::convert::TryInto::<u16>::try_into(op).unwrap())
+        .collect();
+    for ins in encoded_instructions {
+        output.push((ins & 0xFF) as u8);
+        output.push((ins >> 8) as u8);
     }
     stdout().write_all(&output).unwrap();
 }
