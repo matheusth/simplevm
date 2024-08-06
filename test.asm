@@ -1,3 +1,5 @@
-
-01 0B 01 08 03 00 02 00 04 f0
-
+Push 10
+Push 8
+AddStack
+PopRegister 0
+Signal 0
