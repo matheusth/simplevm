@@ -18,6 +18,7 @@ fn main() {
     let encoded_instructions: Vec<u16> = buff
         .lines()
         .map(|e| e.unwrap())
+        .filter(|e| !e.starts_with(';'))
         .map(|l| Op::try_from(l).unwrap())
         .map(|op| std::convert::TryInto::<u16>::try_into(op).unwrap())
         .collect();
