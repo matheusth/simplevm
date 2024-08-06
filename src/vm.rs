@@ -1,4 +1,3 @@
-use core::panic;
 use std::collections::HashMap;
 
 use crate::memory::{Addressable, LinearMemory};
@@ -15,18 +14,19 @@ pub enum Register {
     Flags,
 }
 pub type SignalFunction = fn(&mut Machine) -> Result<(), String>;
-impl From<u8> for Register {
-    fn from(value: u8) -> Self {
+impl TryFrom<u8> for Register {
+    type Error = String;
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0 => Self::A,
-            1 => Self::B,
-            2 => Self::C,
-            3 => Self::M,
-            4 => Self::SP,
-            5 => Self::PC,
-            6 => Self::BP,
-            7 => Self::Flags,
-            _ => panic!("invalid register"),
+            0 => Ok(Self::A),
+            1 => Ok(Self::B),
+            2 => Ok(Self::C),
+            3 => Ok(Self::M),
+            4 => Ok(Self::SP),
+            5 => Ok(Self::PC),
+            6 => Ok(Self::BP),
+            7 => Ok(Self::Flags),
+            _ => Err(format!("invalid register {:X}", value)),
         }
     }
 }
@@ -56,7 +56,7 @@ impl TryFrom<u16> for Op {
             }
             2 => {
                 let arg = parse_instruction_arg(value);
-                Ok(Op::PopRegister(Register::from(arg)))
+                Ok(Op::PopRegister(Register::try_from(arg)?))
             }
             3 => Ok(Op::AddStack),
             4 => Ok(Op::Signal(parse_instruction_arg(value))),
@@ -76,8 +76,13 @@ impl TryFrom<String> for Op {
                 Ok(Op::Push(arg))
             }
             "PopRegister" => {
-                let arg: u8 = splited_value[1].parse().expect("Invalid argument");
-                Ok(Op::PopRegister(arg.into()))
+                if let Ok(arg) = splited_value[1].parse::<u8>() {
+                    return Ok(Op::PopRegister(arg.try_into().unwrap()));
+                }
+                Err(format!(
+                    "Invalid argument {} for PopRegister.",
+                    splited_value[1]
+                ))
             }
             "AddStack" => Ok(Op::AddStack),
             "Signal" => {
