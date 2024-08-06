@@ -20,7 +20,7 @@ fn main() -> Result<(), String> {
     let mut buff = BufReader::new(file);
     let mut program: Vec<u8> = Vec::new();
 
-    vm.define_handler(0, signal_halt);
+    vm.define_handler(0xf0, signal_halt);
     let _ = buff.read_to_end(&mut program);
     vm.memory.load_into(&program, 0);
     while !vm.halt {
