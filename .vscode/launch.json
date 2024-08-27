@@ -17,7 +17,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug vm",
-            "args": ["program.bin"],
+            "args": ["test.bin"],
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/target/debug/vm",
             "sourceLanguages": [
