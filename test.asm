@@ -7,5 +7,5 @@ Push 10
 Push 12
 PopRegister 1
 PopRegister 2
-AddRegister 1 2
+AddRegister B C
 Signal $f0

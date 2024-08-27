@@ -27,3 +27,21 @@ impl TryFrom<u8> for Register {
         }
     }
 }
+
+impl TryFrom<&str> for Register {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "A" => Ok(Self::A),
+            "B" => Ok(Self::B),
+            "C" => Ok(Self::C),
+            "M" => Ok(Self::M),
+            "SP" => Ok(Self::SP),
+            "PC" => Ok(Self::PC),
+            "BP" => Ok(Self::BP),
+            "Flags" => Ok(Self::Flags),
+            _ => Err(format!("{} IS NOT A VALID REGISTER!", value)),
+        }
+    }
+}

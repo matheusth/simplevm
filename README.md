@@ -32,14 +32,14 @@ $ cargo run --bin vm <program>
 
 ### Registers
 
- - 0: A
- - 1: B
- - 2: C
- - 3: M
- - 4: SP
- - 5: PC
- - 6: BP
- - 7: Flags
+ - A
+ - B
+ - C
+ - M
+ - SP
+ - PC
+ - BP
+ - Flags
 
 ### Parameters
 
@@ -49,13 +49,13 @@ $ cargo run --bin vm <program>
 
 ### Instructions
 
-| Command     | Parameters                 | Description                                                                      |
-| :---------: | :------------------------: | :------------------------------------------------------------------------------: |
-| Push        | U16 Interger               | Push a u16 to the stack.                                                         |
-| PopRegister | U8 Integer                 | Pop the top of the stack to the register with the selected index.                |
-| AddStack    | -                          | Add the two most top numbers on the stack and push the result to the stack.      |
-| AddRegister | U8 Register1, U8 Register2 | Add Register2 to Register1                                                       |
-| Signal      | U8 Signal                  | Send a signal to the VM.                                                         |
+| Command     | Parameters                 | Description                                                                          |
+| :---------: | :------------------------: | :----------------------------------------------------------------------------------: |
+| Push        | U16 Interger               | Push a u16 to the stack.                                                             |
+| PopRegister | U8 Integer                 | Pop the top of the stack to the register with the selected index.                    |
+| AddStack    | -                          | Add the two most top numbers on the stack and push the result to the stack.          |
+| AddRegister | Register1, Register2       | Add Register2 to Register1, see the [register section](#Registers) for register names.|
+| Signal      | U8 Signal                  | Send a signal to the VM.                                                             |
 
 ### Signals
 

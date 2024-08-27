@@ -82,10 +82,10 @@ impl TryFrom<String> for Op {
             }
             "AddRegister" => {
                 if let (Ok(r1), Ok(r2)) = (
-                    splited_value[1].parse::<u8>(),
-                    splited_value[2].parse::<u8>(),
+                    Register::try_from(splited_value[1]),
+                    Register::try_from(splited_value[2]),
                 ) {
-                    return Ok(Op::AddRegister(r1.try_into()?, r2.try_into()?));
+                    return Ok(Op::AddRegister(r1, r2));
                 }
                 Err(format!(
                     "AddRegister reviced invalid arguments: {:?}",
