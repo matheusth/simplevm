@@ -1,4 +1,5 @@
-use simplevm::{Machine, Register};
+use simplevm::{Machine};
+use simplevm::register::Register;
 use std::env;
 use std::io::BufReader;
 use std::path::Path;

@@ -1,4 +1,4 @@
-use simplevm::Op;
+use simplevm::op::Op;
 use std::{
     env,
     fs::File,
