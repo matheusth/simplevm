@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug asm",
+            "args": ["test.asm"],
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/target/debug/asm",
+            "sourceLanguages": [
+                "rust"
+            ]
+        },
+
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug vm",
+            "args": ["program.bin"],
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/target/debug/vm",
+            "sourceLanguages": [
+                "rust"
+            ]
+        }
+    ]
+}

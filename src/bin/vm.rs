@@ -27,5 +27,7 @@ fn main() -> Result<(), String> {
         vm.step()?;
     }
     println!("A = {}", vm.get_register(Register::A));
+    println!("B = {}", vm.get_register(Register::B));
+    println!("C = {}", vm.get_register(Register::C));
     Ok(())
 }

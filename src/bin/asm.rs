@@ -2,17 +2,26 @@ use simplevm::Op;
 use std::{
     env,
     fs::File,
-    io::{stdout, BufRead, BufReader, Write},
-    path::Path,
+    io::{BufRead, BufReader, Write},
+    path::{Path, PathBuf},
 };
 
 fn main() {
     // ./asm file.asm
     let args: Vec<_> = env::args().collect();
-    if args.len() != 2 {
-        panic!("usage: {} <input>", args[0]);
+    if args.len() != 2 && args.len() != 3 {
+        panic!(
+            "usage: {} <input>\nor\n{} <input> <output>",
+            args[0], args[0]
+        );
     }
-    let file = File::open(Path::new(&args[1])).unwrap();
+    let input_path = Path::new(&args[1]);
+    let output_path: PathBuf = if args.len() == 3 {
+        PathBuf::from(&args[2])
+    } else {
+        input_path.with_extension("bin")
+    };
+    let file = File::open(input_path).unwrap();
     let buff = BufReader::new(file);
     let mut output: Vec<u8> = Vec::new();
     let encoded_instructions: Vec<u16> = buff
@@ -26,5 +35,6 @@ fn main() {
         output.push((ins & 0xFF) as u8);
         output.push((ins >> 8) as u8);
     }
-    stdout().write_all(&output).unwrap();
+    let mut output_file = File::create(&output_path).unwrap();
+    output_file.write_all(&output).unwrap();
 }
