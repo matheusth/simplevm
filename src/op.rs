@@ -15,12 +15,14 @@ pub enum Op {
 }
 
 impl Op {
-    fn encode_r1(r: Register) -> u16 {
-        ((r as u16) & 0x0f) << 8
+    fn encode_arg(arg: u16) -> u16 {
+        arg << 8
     }
-    fn encode_r2(r: Register) -> u16 {
-        ((r as u16) & 0x0f) << 12
+
+    fn encode_args(arg1: u16, arg2: u16) -> u16 {
+        (arg1 & 0x0f) << 8 | (arg2 & 0x0f) << 12
     }
+
     fn parse_numeric(s: &str) -> Result<u8, String> {
         if s.is_empty() {
             return Err("Empity string".to_string());
@@ -32,28 +34,39 @@ impl Op {
         };
         u8::from_str_radix(num, radix).map_err(|x| format!("{}", x))
     }
+
+    fn parse_args(ins: u16) -> (u8, u8) {
+        (((ins & 0xf00) >> 8) as u8, ((ins & 0xf000) >> 12) as u8)
+    }
+
+    fn parse_arg(ins: u16) -> u8 {
+        (ins >> 8) as u8
+    }
 }
 
 impl TryFrom<u16> for Op {
     type Error = String;
+
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         let op = (value & 0xff) as u8;
         match op {
             0 => Ok(Op::Nop),
             1 => {
-                let arg = parse_instruction_arg(value);
+                let arg = Op::parse_arg(value);
                 Ok(Op::Push(arg as u16))
             }
             2 => {
-                let arg = parse_instruction_arg(value);
+                let arg = Op::parse_arg(value);
                 Ok(Op::PopRegister(Register::try_from(arg)?))
             }
             3 => Ok(Op::AddStack),
             4 => {
-                let reg1 = Register::try_from(((value & 0xf00) >> 8) as u8)?;
-                let reg2 = Register::try_from(((value & 0xf000) >> 12) as u8)?;
+                let (reg1, reg2) = Op::parse_args(value);
                 println!("{:?}, {:?}", &reg1, &reg2);
-                Ok(Op::AddRegister(reg1, reg2))
+                Ok(Op::AddRegister(
+                    Register::try_from(reg1)?,
+                    Register::try_from(reg2)?,
+                ))
             }
             5 => Ok(Op::Signal(parse_instruction_arg(value))),
             _ => Err(format!("invalid instruction {:X}", value)),
@@ -105,17 +118,11 @@ impl TryFrom<Op> for u16 {
     type Error = String;
     fn try_from(value: Op) -> Result<Self, Self::Error> {
         match value {
-            Op::Push(x) => Ok(1 | x << 8),
-            Op::PopRegister(x) => Ok(2 & 0xff | (x as u16) << 8),
+            Op::Push(x) => Ok(1 | Op::encode_arg(x)),
+            Op::PopRegister(x) => Ok(2 & 0xff | Op::encode_arg(x as u16)),
             Op::AddStack => Ok(3),
             Op::Signal(x) => Ok(5 & 0xff | (x as u16) << 8),
-            Op::AddRegister(r1, r2) => {
-                println!("{:?}, {:?}", &r1, &r2);
-                let r1 = Op::encode_r1(r1);
-                let r2 = Op::encode_r2(r2);
-                println!("{:?}, {:?}", r1, r2);
-                Ok(4 | r1 | r2)
-            }
+            Op::AddRegister(r1, r2) => Ok(4 | Op::encode_args(r1 as u16, r2 as u16)),
             _ => Err(format!(
                 "Unimplemented op {}!",
                 u16::try_from(value).unwrap()
